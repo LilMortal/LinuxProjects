@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# LFS Maintenance Cron Job Configuration
+# 
+# This file contains cron job definitions for LFS system maintenance.
+# To install: sudo cp /opt/lfs-toolkit/cron/lfs-maintenance /etc/cron.d/
+#
+# The cron daemon will automatically pick up this file and execute the jobs.
+#
+
+# Set shell and path for cron jobs
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/lfs-toolkit/scripts
+
+# Set email for cron job notifications (optional)
+# MAILTO=admin@example.com
+
+# =============================================================================
+# MAINTENANCE JOBS
+# =============================================================================
+
+# Weekly full system maintenance (Sundays at 2:00 AM)
+# This includes log rotation, backup cleanup, and system health checks
+0 2 * * 0 root /opt/lfs-toolkit/scripts/maintenance.sh --full >> /var/log/lfs-maintenance.log 2>&1
+
+# Daily quick maintenance (Every day at 3:00 AM)  
+# This includes log cleanup and basic health checks
+0 3 * * * root /opt/lfs-toolkit/scripts/maintenance.sh --quick >> /var/log/lfs-maintenance.log 2>&1
+
+# =============================================================================
+# LOG MANAGEMENT
+# =============================================================================
+
+# Daily log rotation and compression (Every day at 3:30 AM)
+30 3 * * * root /usr/sbin/logrotate -f /etc/logrotate.d/lfs-build
+
+# Weekly old log cleanup (Sundays at 4:00 AM)
+# Remove logs older than 30 days
+0 4 * * 0 root find /var/log/lfs-build -name "*.log" -type f -mtime +30 -delete
+
+# Weekly compressed log cleanup (Sundays at 4:15 AM)
+# Remove compressed logs older than 90 days
+15 4 * * 0 root find /var/log/lfs-build -name "*.gz" -type f -mtime +90 -delete
+
+# =============================================================================
+# BACKUP MANAGEMENT
+# =============================================================================
+
+# Weekly backup cleanup (Sundays at 4:30 AM)
+# Remove backups older than 60 days
+30 4 * * 0 root find /opt/lfs-backups -name "*.tar.gz" -type f -mtime +60 -delete
+
+# Monthly backup verification (First Sunday of month at 5:00 AM)
+0 5 1-7 * 0 root /opt/lfs-toolkit/scripts/verify-backups.sh >> /var/log/lfs-backup-verify.log 2>&1
+
+# =============================================================================
+# SYSTEM MONITORING
+# =============================================================================
+
+# Hourly disk space check (Every hour at minute 15)
+# Alert if disk usage exceeds 85%
+15 * * * * root /opt/lfs-toolkit/scripts/check-disk-space.sh --threshold=85 --alert >> /var/log/lfs-disk-check.log 2>&1
+
+# Daily system health check (Every day at 6:00 AM)
+0 6 * * * root /opt/lfs-toolkit/scripts/health-check.sh >> /var/log/lfs-health-check.log 2>&1
+
+# Weekly host validation (Sundays at 7:00 AM)
+# Re-validate host system requirements
+0 7 * * 0 root /opt/lfs-toolkit/scripts/validate-host.py >> /var/log/lfs-host-validation.log 2>&1
+
+# =============================================================================
+# PACKAGE MANAGEMENT
+# =============================================================================
+
+# Weekly package source updates (Saturdays at 11:00 PM)
+# Update local package mirrors and checksums
+0 23 * * 6 root /opt/lfs-toolkit/scripts/update-sources.sh >> /var/log/lfs-source-update.log 2>&1
+
+# Monthly security updates check (First Monday of month at 8:00 AM)
+0 8 1-7 * 1 root /opt/lfs-toolkit/scripts/check-security-updates.sh >> /var/log/lfs-security-check.log 2>&1
+
+# =============================================================================
+# REPORTING
+# =============================================================================
+
+# Weekly build report generation (Sundays at 8:00 AM)
+0 8 * * 0 root /opt/lfs-toolkit/scripts/generate-report.py --weekly --output=/tmp/lfs-weekly-report.html
+
+# Monthly comprehensive report (First day of month at 9:00 AM)
+0 9 1 * * root /opt/lfs-toolkit/scripts/generate-report.py --monthly --output=/tmp/lfs-monthly-report.html
+
+# =============================================================================
+# NOTES
+# =============================================================================
+#
+# Time format: minute hour day-of-month month day-of-week
+# 
+# Special time strings:
+#   @reboot   - Run once at startup
+#   @yearly   - Run once a year (0 0 1 1 *)
+#   @monthly  - Run once a month (0 0 1 * *)
+#   @weekly   - Run once a week (0 0 * * 0)
+#   @daily    - Run once a day (0 0 * * *)
+#   @hourly   - Run once an hour (0 * * * *)
+#
+# To disable a job, comment it out with #
+# To test a cron job: sudo run-parts --test /etc/cron.d/
+#
+# View cron logs: journalctl -u cron
+# List active cron jobs: crontab -l (for user) or sudo crontab -l (for root)

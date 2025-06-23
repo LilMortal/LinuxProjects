@@ -1,0 +1,47 @@
+[Unit]
+Description=Linux From Scratch (LFS) Build Monitor Service
+Documentation=file:///opt/lfs-toolkit/README.md
+After=multi-user.target
+
+[Service]
+Type=simple
+User=root
+Group=lfs
+WorkingDirectory=/opt/lfs-toolkit
+
+# Environment
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/lfs-toolkit/scripts
+Environment=PYTHONPATH=/opt/lfs-toolkit/scripts
+
+# Monitor command
+ExecStart=/opt/lfs-toolkit/scripts/monitor-build.py --log-dir=/var/log/lfs-build
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lfs-monitor
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+StartLimitInterval=60s
+StartLimitBurst=5
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/log/lfs-build /opt/lfs-toolkit
+
+# Resource limits
+LimitNOFILE=4096
+LimitNPROC=100
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

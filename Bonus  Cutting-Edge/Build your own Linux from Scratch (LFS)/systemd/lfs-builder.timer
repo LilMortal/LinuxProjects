@@ -1,0 +1,21 @@
+[Unit]
+Description=Linux From Scratch (LFS) Build Timer
+Documentation=file:///opt/lfs-toolkit/README.md
+Requires=lfs-builder.service
+
+[Timer]
+# Run weekly on Sundays at 2:00 AM
+OnCalendar=Sun *-*-* 02:00:00
+
+# Randomize start time by up to 1 hour to avoid system load spikes
+RandomizedDelaySec=3600
+
+# Persistent timer - if system was down when timer should have triggered,
+# run the service on next boot
+Persistent=true
+
+# Accuracy - how close to the scheduled time the timer should trigger
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

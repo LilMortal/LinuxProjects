@@ -1,0 +1,42 @@
+[Unit]
+Description=Linux From Scratch (LFS) Build Service
+Documentation=file:///opt/lfs-toolkit/README.md
+After=multi-user.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=lfs
+WorkingDirectory=/opt/lfs-toolkit
+
+# Environment
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=LFS_TOOLKIT_DIR=/opt/lfs-toolkit
+
+# Main build command
+ExecStart=/opt/lfs-toolkit/lfs-build.sh --full --config=/opt/lfs-toolkit/config/lfs.conf
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lfs-builder
+
+# Security and resource limits
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/mnt /opt/lfs-toolkit /var/log/lfs-build /tmp
+
+# Restart policy
+Restart=no
+TimeoutStartSec=24h
+TimeoutStopSec=30s
+
+# Resource limits
+LimitNOFILE=16384
+LimitNPROC=8192
+
+[Install]
+WantedBy=multi-user.target
