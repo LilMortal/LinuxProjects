@@ -1,0 +1,16 @@
+127.0.0.1 - - [10/Oct/2023:13:55:36 +0000] "GET /index.html HTTP/1.1" 200 2326
+192.168.1.100 - - [10/Oct/2023:13:55:37 +0000] "POST /login.php HTTP/1.1" 302 -
+Oct 10 13:55:38 server01 sshd[1234]: Accepted publickey for user from 192.168.1.50 port 22 ssh2
+2023-10-10 13:55:39 [INFO] Application started successfully
+2023-10-10 13:55:40 [ERROR] Database connection failed: Connection timeout
+10.0.0.5 - - [10/Oct/2023:13:55:41 +0000] "GET /api/data HTTP/1.1" 404 168
+Oct 10 13:55:42 server01 kernel: Out of memory: Kill process 5678 (chrome) score 123
+2023-10-10 13:55:43 [WARN] High memory usage detected: 85%
+Invalid request from 203.0.113.1 - potential security threat
+User john.doe@example.com logged in successfully
+Credit card transaction: 4111-1111-1111-1111 processed
+Phone number in logs: 555-123-4567
+MAC address found: 00:1B:44:11:3A:B7
+Failed login attempt for user admin from 203.0.113.5
+Traceback (most recent call last):
+  File "app.py", line 42, in main

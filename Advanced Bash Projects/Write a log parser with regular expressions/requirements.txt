@@ -1,0 +1,8 @@
+# Core Python dependencies
+# All dependencies are part of Python standard library
+# No external packages required
+
+# Optional dependencies for enhanced functionality:
+# colorama>=0.4.4  # For colored terminal output
+# tqdm>=4.64.0     # For progress bars
+# click>=8.0.0     # Alternative CLI framework

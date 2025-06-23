@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Log Parser Daily
+Requires=log-parser.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

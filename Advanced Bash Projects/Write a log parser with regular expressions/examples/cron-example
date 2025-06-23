@@ -1,0 +1,9 @@
+# Example cron job for log parser
+# Parse Apache logs daily at 2 AM
+0 2 * * * /usr/local/bin/log-parser -f /var/log/apache2/access.log -c apache -o json -w /var/log/parsed/apache-$(date +\%Y\%m\%d).json --report
+
+# Parse system logs every 6 hours
+0 */6 * * * /usr/local/bin/log-parser -f /var/log/syslog -c syslog -o csv -w /var/log/parsed/syslog-$(date +\%Y\%m\%d\%H).csv
+
+# Weekly security scan of all logs
+0 3 * * 0 /usr/local/bin/log-parser -f /var/log/auth.log -c security --report > /var/log/security-report-$(date +\%Y\%m\%d).txt

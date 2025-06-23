@@ -1,0 +1,32 @@
+[Unit]
+Description=Log Parser Service
+Documentation=https://github.com/username/log-parser
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+User=logparser
+Group=logparser
+WorkingDirectory=/opt/log-parser
+Environment=PYTHONPATH=/opt/log-parser
+ExecStart=/usr/bin/python3 /opt/log-parser/src/log_parser.py -f /var/log/syslog -c syslog --report
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=log-parser
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/log-parser/logs /tmp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
