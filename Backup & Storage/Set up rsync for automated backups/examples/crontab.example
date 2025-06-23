@@ -1,0 +1,23 @@
+# Example crontab entries for rsync-backup-tool
+# Add these entries using: crontab -e
+
+# Run full backup daily at 2:00 AM
+0 2 * * * /opt/rsync-backup-tool/src/backup.sh >/dev/null 2>&1
+
+# Run specific backup jobs at different times
+0 1 * * * /opt/rsync-backup-tool/src/backup.sh home-backup >/dev/null 2>&1
+0 3 * * * /opt/rsync-backup-tool/src/backup.sh documents-remote >/dev/null 2>&1
+0 4 * * 0 /opt/rsync-backup-tool/src/backup.sh system-config >/dev/null 2>&1
+
+# Run with verbose logging (for debugging)
+0 2 * * * /opt/rsync-backup-tool/src/backup.sh -v >> /var/log/backup-debug.log 2>&1
+
+# Dry run to test configuration (useful for testing new setups)
+# 0 1 * * 0 /opt/rsync-backup-tool/src/backup.sh -n -v
+
+# Example: Backup specific directories at different frequencies
+# Hourly backup of critical data (during business hours)
+0 9-17 * * 1-5 /opt/rsync-backup-tool/src/backup.sh critical-data >/dev/null 2>&1
+
+# Weekly full system backup (Sunday at 1 AM)
+0 1 * * 0 /opt/rsync-backup-tool/src/backup.sh system-backup >/dev/null 2>&1

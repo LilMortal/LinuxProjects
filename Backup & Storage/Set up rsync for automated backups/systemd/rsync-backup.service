@@ -1,0 +1,36 @@
+[Unit]
+Description=Rsync Backup Tool
+Documentation=https://github.com/yourusername/rsync-backup-tool
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=backup
+Group=backup
+ExecStart=/opt/rsync-backup-tool/src/backup.sh
+WorkingDirectory=/opt/rsync-backup-tool
+
+# Security settings
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# Allow access to backup directories
+ReadWritePaths=/backup /opt/rsync-backup-tool/logs
+
+# Environment
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rsync-backup-tool
+
+[Install]
+WantedBy=multi-user.target
