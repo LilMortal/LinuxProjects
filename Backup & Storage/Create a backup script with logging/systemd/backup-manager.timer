@@ -1,0 +1,19 @@
+[Unit]
+Description=Run Linux Backup Manager daily
+Documentation=file:///usr/share/doc/backup-manager/README.md
+Requires=backup-manager.service
+
+[Timer]
+# Run daily at 2:00 AM
+OnCalendar=daily
+Persistent=true
+
+# Randomize start time by up to 30 minutes to avoid system load spikes
+RandomizedDelaySec=30min
+
+# If the system was powered off when the timer should have run,
+# run the backup when the system comes back up
+Persistent=true
+
+[Install]
+WantedBy=timers.target

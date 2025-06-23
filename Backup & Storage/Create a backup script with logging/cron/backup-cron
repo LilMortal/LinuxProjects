@@ -1,0 +1,21 @@
+# Linux Backup Manager Cron Job
+# 
+# This file should be placed in /etc/cron.d/ for system-wide execution
+# or added to a user's crontab with \'crontab -e'
+#
+# Format: minute hour day month day-of-week user command
+#
+# Examples:
+# - Daily at 2:00 AM:    0  2  * * *  root  /usr/local/bin/backup-manager -c /etc/backup-manager.conf
+# - Weekly on Sunday:    0  2  * * 0  root  /usr/local/bin/backup-manager -c /etc/backup-manager.conf
+# - Monthly on 1st:      0  2  1 * *  root  /usr/local/bin/backup-manager -c /etc/backup-manager.conf
+# - Every 6 hours:       0 */6 * * *  root  /usr/local/bin/backup-manager -c /etc/backup-manager.conf
+
+# Daily backup at 2:00 AM
+0 2 * * * root /usr/local/bin/backup-manager -c /etc/backup-manager.conf >/dev/null 2>&1
+
+# Weekly backup on Sunday at 3:00 AM (uncomment if needed)
+# 0 3 * * 0 root /usr/local/bin/backup-manager -c /etc/backup-manager.conf --compression xz
+
+# Send output to log file instead of email (alternative)
+# 0 2 * * * root /usr/local/bin/backup-manager -c /etc/backup-manager.conf >> /var/log/backup-manager/cron.log 2>&1
