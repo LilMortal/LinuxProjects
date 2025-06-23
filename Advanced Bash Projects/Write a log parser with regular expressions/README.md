@@ -343,15 +343,11 @@ line_number,file_path,matched,pattern_used,original_line
 
 ## Author and License
 
-**Author**: [Your Name]  
-**Email**: [your.email@example.com]  
-**GitHub**: [https://github.com/username/log-parser](https://github.com/username/log-parser)
+
 
 ### License
 
 MIT License
-
-Copyright (c) 2023 [Your Name]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
