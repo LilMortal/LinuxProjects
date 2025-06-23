@@ -1,0 +1,732 @@
+#!/bin/bash
+
+# =============================================================================
+# System Admin Menu - Interactive Bash Menu Application
+# =============================================================================
+# Description: A comprehensive menu-based system administration tool
+# Author: System Administrator
+# Version: 1.0.0
+# License: MIT
+# =============================================================================
+
+# Set script options for better error handling
+set -euo pipefail
+
+# =============================================================================
+# GLOBAL VARIABLES AND CONFIGURATION
+# =============================================================================
+
+# Script information
+readonly SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_VERSION="1.0.0"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Configuration file path
+readonly CONFIG_FILE="${PROJECT_ROOT}/config/sysadmin-menu.conf"
+
+# Log file path
+readonly LOG_DIR="${PROJECT_ROOT}/logs"
+readonly LOG_FILE="${LOG_DIR}/sysadmin-menu.log"
+
+# Colors for output
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly PURPLE='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly WHITE='\033[1;37m'
+readonly NC='\033[0m' # No Color
+
+# Default configuration values
+ENABLE_LOGGING="true"
+LOG_LEVEL="INFO"
+AUTO_REFRESH="false"
+REFRESH_INTERVAL="5"
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Print colored output
+print_color() {
+    local color="$1"
+    local message="$2"
+    echo -e "${color}${message}${NC}"
+}
+
+# Print error message
+print_error() {
+    print_color "$RED" "ERROR: $1" >&2
+}
+
+# Print success message
+print_success() {
+    print_color "$GREEN" "SUCCESS: $1"
+}
+
+# Print warning message
+print_warning() {
+    print_color "$YELLOW" "WARNING: $1"
+}
+
+# Print info message
+print_info() {
+    print_color "$BLUE" "INFO: $1"
+}
+
+# =============================================================================
+# LOGGING FUNCTIONS
+# =============================================================================
+
+# Initialize logging
+init_logging() {
+    if [[ ! -d "$LOG_DIR" ]]; then
+        mkdir -p "$LOG_DIR"
+    fi
+    
+    if [[ ! -f "$LOG_FILE" ]]; then
+        touch "$LOG_FILE"
+    fi
+}
+
+# Log message
+log_message() {
+    local level="$1"
+    local message="$2"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    if [[ "$ENABLE_LOGGING" == "true" ]]; then
+        echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+    fi
+}
+
+# Log info message
+log_info() {
+    log_message "INFO" "$1"
+}
+
+# Log error message
+log_error() {
+    log_message "ERROR" "$1"
+}
+
+# Log warning message
+log_warning() {
+    log_message "WARNING" "$1"
+}
+
+# =============================================================================
+# CONFIGURATION FUNCTIONS
+# =============================================================================
+
+# Load configuration file
+load_config() {
+    if [[ -f "$CONFIG_FILE" ]]; then
+        # Source the config file safely
+        while IFS='=' read -r key value; do
+            # Skip comments and empty lines
+            [[ "$key" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$key" ]] && continue
+            
+            # Remove quotes from value if present
+            value="${value%\"}"
+            value="${value#\"}"
+            
+            # Set the variable
+            case "$key" in
+                "ENABLE_LOGGING") ENABLE_LOGGING="$value" ;;
+                "LOG_LEVEL") LOG_LEVEL="$value" ;;
+                "AUTO_REFRESH") AUTO_REFRESH="$value" ;;
+                "REFRESH_INTERVAL") REFRESH_INTERVAL="$value" ;;
+            esac
+        done < "$CONFIG_FILE"
+        
+        log_info "Configuration loaded from $CONFIG_FILE"
+    else
+        log_warning "Configuration file not found at $CONFIG_FILE, using defaults"
+    fi
+}
+
+# =============================================================================
+# SYSTEM INFORMATION FUNCTIONS
+# =============================================================================
+
+# Display system information
+show_system_info() {
+    clear
+    print_color "$CYAN" "=== SYSTEM INFORMATION ==="
+    echo
+    
+    print_color "$WHITE" "Hostname: $(hostname)"
+    print_color "$WHITE" "Operating System: $(lsb_release -d 2>/dev/null | cut -f2 || echo "Unknown")"
+    print_color "$WHITE" "Kernel: $(uname -r)"
+    print_color "$WHITE" "Architecture: $(uname -m)"
+    print_color "$WHITE" "Uptime: $(uptime -p 2>/dev/null || uptime)"
+    print_color "$WHITE" "Load Average: $(uptime | awk -F'load average:' '{print $2}')"
+    
+    echo
+    print_color "$YELLOW" "Memory Usage:"
+    free -h | grep -E "Mem|Swap"
+    
+    echo
+    print_color "$YELLOW" "CPU Information:"
+    grep "model name" /proc/cpuinfo | head -1 | cut -d: -f2 | sed 's/^ *//'
+    print_color "$WHITE" "CPU Cores: $(nproc)"
+    
+    echo
+    print_color "$YELLOW" "Disk Usage (Top 5):"
+    df -h | head -6 | tail -5
+    
+    log_info "System information displayed"
+}
+
+# =============================================================================
+# SERVICE MANAGEMENT FUNCTIONS
+# =============================================================================
+
+# Show service status
+show_service_status() {
+    clear
+    print_color "$CYAN" "=== SERVICE STATUS ==="
+    echo
+    
+    local services=("ssh" "apache2" "nginx" "mysql" "postgresql" "docker" "fail2ban")
+    
+    for service in "${services[@]}"; do
+        if systemctl is-enabled "$service" &>/dev/null; then
+            local status=$(systemctl is-active "$service" 2>/dev/null)
+            if [[ "$status" == "active" ]]; then
+                print_color "$GREEN" "✓ $service: $status"
+            else
+                print_color "$RED" "✗ $service: $status"
+            fi
+        else
+            print_color "$YELLOW" "- $service: not installed/enabled"
+        fi
+    done
+    
+    log_info "Service status displayed"
+}
+
+# Manage services
+manage_services() {
+    while true; do
+        clear
+        print_color "$CYAN" "=== SERVICE MANAGEMENT ==="
+        echo
+        print_color "$WHITE" "1. Show service status"
+        print_color "$WHITE" "2. Start a service"
+        print_color "$WHITE" "3. Stop a service"
+        print_color "$WHITE" "4. Restart a service"
+        print_color "$WHITE" "5. Enable a service"
+        print_color "$WHITE" "6. Disable a service"
+        print_color "$WHITE" "0. Back to main menu"
+        echo
+        
+        read -p "Select an option: " choice
+        
+        case $choice in
+            1) show_service_status; read -p "Press Enter to continue..." ;;
+            2) service_action "start" ;;
+            3) service_action "stop" ;;
+            4) service_action "restart" ;;
+            5) service_action "enable" ;;
+            6) service_action "disable" ;;
+            0) break ;;
+            *) print_error "Invalid option" ;;
+        esac
+    done
+}
+
+# Perform service action
+service_action() {
+    local action="$1"
+    echo
+    read -p "Enter service name: " service_name
+    
+    if [[ -z "$service_name" ]]; then
+        print_error "Service name cannot be empty"
+        return 1
+    fi
+    
+    if sudo systemctl "$action" "$service_name" 2>/dev/null; then
+        print_success "Service $service_name ${action}ed successfully"
+        log_info "Service $service_name ${action}ed"
+    else
+        print_error "Failed to $action service $service_name"
+        log_error "Failed to $action service $service_name"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# =============================================================================
+# LOG VIEWING FUNCTIONS
+# =============================================================================
+
+# View system logs
+view_logs() {
+    while true; do
+        clear
+        print_color "$CYAN" "=== LOG VIEWER ==="
+        echo
+        print_color "$WHITE" "1. View system log (last 50 lines)"
+        print_color "$WHITE" "2. View authentication log"
+        print_color "$WHITE" "3. View Apache access log"
+        print_color "$WHITE" "4. View Nginx access log"
+        print_color "$WHITE" "5. View application log"
+        print_color "$WHITE" "6. Follow system log (real-time)"
+        print_color "$WHITE" "0. Back to main menu"
+        echo
+        
+        read -p "Select an option: " choice
+        
+        case $choice in
+            1) view_specific_log "/var/log/syslog" ;;
+            2) view_specific_log "/var/log/auth.log" ;;
+            3) view_specific_log "/var/log/apache2/access.log" ;;
+            4) view_specific_log "/var/log/nginx/access.log" ;;
+            5) view_specific_log "$LOG_FILE" ;;
+            6) follow_log "/var/log/syslog" ;;
+            0) break ;;
+            *) print_error "Invalid option" ;;
+        esac
+    done
+}
+
+# View specific log file
+view_specific_log() {
+    local log_file="$1"
+    
+    if [[ -f "$log_file" ]]; then
+        clear
+        print_color "$CYAN" "=== LOG: $log_file ==="
+        echo
+        tail -50 "$log_file"
+        echo
+        log_info "Viewed log file: $log_file"
+    else
+        print_error "Log file not found: $log_file"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# Follow log file in real-time
+follow_log() {
+    local log_file="$1"
+    
+    if [[ -f "$log_file" ]]; then
+        clear
+        print_color "$CYAN" "=== FOLLOWING LOG: $log_file ==="
+        print_color "$YELLOW" "Press Ctrl+C to stop"
+        echo
+        tail -f "$log_file"
+    else
+        print_error "Log file not found: $log_file"
+        read -p "Press Enter to continue..."
+    fi
+}
+
+# =============================================================================
+# DISK USAGE FUNCTIONS
+# =============================================================================
+
+# Show disk usage
+show_disk_usage() {
+    clear
+    print_color "$CYAN" "=== DISK USAGE ==="
+    echo
+    
+    print_color "$YELLOW" "Filesystem Usage:"
+    df -h
+    
+    echo
+    print_color "$YELLOW" "Largest Directories in /var/log:"
+    du -sh /var/log/* 2>/dev/null | sort -hr | head -10
+    
+    echo
+    print_color "$YELLOW" "Largest Files in /tmp:"
+    find /tmp -type f -exec ls -lh {} \; 2>/dev/null | sort -k5 -hr | head -10
+    
+    log_info "Disk usage displayed"
+    read -p "Press Enter to continue..."
+}
+
+# =============================================================================
+# NETWORK FUNCTIONS
+# =============================================================================
+
+# Show network information
+show_network_info() {
+    clear
+    print_color "$CYAN" "=== NETWORK INFORMATION ==="
+    echo
+    
+    print_color "$YELLOW" "Network Interfaces:"
+    ip addr show | grep -E "^[0-9]+:|inet "
+    
+    echo
+    print_color "$YELLOW" "Routing Table:"
+    ip route show
+    
+    echo
+    print_color "$YELLOW" "Active Network Connections:"
+    ss -tuln | head -20
+    
+    echo
+    print_color "$YELLOW" "DNS Configuration:"
+    cat /etc/resolv.conf 2>/dev/null || echo "DNS configuration not accessible"
+    
+    log_info "Network information displayed"
+    read -p "Press Enter to continue..."
+}
+
+# =============================================================================
+# USER MANAGEMENT FUNCTIONS
+# =============================================================================
+
+# Show user information
+show_user_info() {
+    clear
+    print_color "$CYAN" "=== USER INFORMATION ==="
+    echo
+    
+    print_color "$YELLOW" "Current User: $(whoami)"
+    print_color "$YELLOW" "User ID: $(id -u)"
+    print_color "$YELLOW" "Group ID: $(id -g)"
+    print_color "$YELLOW" "Groups: $(groups)"
+    
+    echo
+    print_color "$YELLOW" "Currently Logged In Users:"
+    who
+    
+    echo
+    print_color "$YELLOW" "Last Login Information:"
+    last -10
+    
+    log_info "User information displayed"
+    read -p "Press Enter to continue..."
+}
+
+# =============================================================================
+# MAIN MENU FUNCTIONS
+# =============================================================================
+
+# Display main menu
+show_main_menu() {
+    clear
+    print_color "$PURPLE" "╔══════════════════════════════════════╗"
+    print_color "$PURPLE" "║        SYSTEM ADMIN MENU v$SCRIPT_VERSION        ║"
+    print_color "$PURPLE" "╚══════════════════════════════════════╝"
+    echo
+    print_color "$WHITE" "1.  System Information"
+    print_color "$WHITE" "2.  Service Management"
+    print_color "$WHITE" "3.  Log Viewer"
+    print_color "$WHITE" "4.  Disk Usage"
+    print_color "$WHITE" "5.  Network Information"
+    print_color "$WHITE" "6.  User Information"
+    print_color "$WHITE" "7.  Update System"
+    print_color "$WHITE" "8.  Reboot System"
+    print_color "$WHITE" "9.  View Application Logs"
+    print_color "$WHITE" "10. Configuration"
+    print_color "$WHITE" "0.  Exit"
+    echo
+}
+
+# Handle menu selection
+handle_menu_selection() {
+    local choice="$1"
+    
+    case $choice in
+        1) show_system_info; read -p "Press Enter to continue..." ;;
+        2) manage_services ;;
+        3) view_logs ;;
+        4) show_disk_usage ;;
+        5) show_network_info ;;
+        6) show_user_info ;;
+        7) update_system ;;
+        8) reboot_system ;;
+        9) view_specific_log "$LOG_FILE" ;;
+        10) show_configuration ;;
+        0) exit_application ;;
+        *) print_error "Invalid option: $choice" ;;
+    esac
+}
+
+# =============================================================================
+# SYSTEM OPERATIONS
+# =============================================================================
+
+# Update system
+update_system() {
+    clear
+    print_color "$CYAN" "=== SYSTEM UPDATE ==="
+    echo
+    
+    print_warning "This will update your system packages. Continue? (y/N)"
+    read -p "Enter your choice: " confirm
+    
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        print_info "Updating package list..."
+        if sudo apt update; then
+            print_success "Package list updated"
+            
+            print_info "Upgrading packages..."
+            if sudo apt upgrade -y; then
+                print_success "System updated successfully"
+                log_info "System updated successfully"
+            else
+                print_error "Failed to upgrade packages"
+                log_error "Failed to upgrade packages"
+            fi
+        else
+            print_error "Failed to update package list"
+            log_error "Failed to update package list"
+        fi
+    else
+        print_info "System update cancelled"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# Reboot system
+reboot_system() {
+    clear
+    print_color "$CYAN" "=== SYSTEM REBOOT ==="
+    echo
+    
+    print_warning "This will reboot your system. Continue? (y/N)"
+    read -p "Enter your choice: " confirm
+    
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        print_info "Rebooting system in 10 seconds..."
+        print_info "Press Ctrl+C to cancel"
+        sleep 10
+        
+        log_info "System reboot initiated"
+        sudo reboot
+    else
+        print_info "System reboot cancelled"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# =============================================================================
+# CONFIGURATION FUNCTIONS
+# =============================================================================
+
+# Show configuration
+show_configuration() {
+    clear
+    print_color "$CYAN" "=== CONFIGURATION ==="
+    echo
+    
+    print_color "$WHITE" "Current Configuration:"
+    print_color "$YELLOW" "Enable Logging: $ENABLE_LOGGING"
+    print_color "$YELLOW" "Log Level: $LOG_LEVEL"
+    print_color "$YELLOW" "Auto Refresh: $AUTO_REFRESH"
+    print_color "$YELLOW" "Refresh Interval: $REFRESH_INTERVAL seconds"
+    print_color "$YELLOW" "Config File: $CONFIG_FILE"
+    print_color "$YELLOW" "Log File: $LOG_FILE"
+    
+    echo
+    print_color "$WHITE" "Options:"
+    print_color "$WHITE" "1. Edit configuration file"
+    print_color "$WHITE" "2. Reload configuration"
+    print_color "$WHITE" "0. Back to main menu"
+    echo
+    
+    read -p "Select an option: " choice
+    
+    case $choice in
+        1) edit_config ;;
+        2) load_config; print_success "Configuration reloaded" ;;
+        0) return ;;
+        *) print_error "Invalid option" ;;
+    esac
+    
+    read -p "Press Enter to continue..."
+}
+
+# Edit configuration file
+edit_config() {
+    if command -v nano &> /dev/null; then
+        nano "$CONFIG_FILE"
+    elif command -v vim &> /dev/null; then
+        vim "$CONFIG_FILE"
+    elif command -v vi &> /dev/null; then
+        vi "$CONFIG_FILE"
+    else
+        print_error "No text editor found (nano, vim, or vi)"
+    fi
+}
+
+# =============================================================================
+# APPLICATION LIFECYCLE
+# =============================================================================
+
+# Initialize application
+init_application() {
+    log_info "Starting System Admin Menu v$SCRIPT_VERSION"
+    
+    # Initialize logging
+    init_logging
+    
+    # Load configuration
+    load_config
+    
+    # Check if running as root for certain operations
+    if [[ $EUID -eq 0 ]]; then
+        log_warning "Running as root user"
+    fi
+}
+
+# Exit application
+exit_application() {
+    clear
+    print_color "$GREEN" "Thank you for using System Admin Menu!"
+    print_info "Logs are available at: $LOG_FILE"
+    log_info "System Admin Menu session ended"
+    exit 0
+}
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+
+# Handle script errors
+handle_error() {
+    local line_number="$1"
+    local error_code="$2"
+    local command="$3"
+    
+    print_error "An error occurred at line $line_number: Command '$command' exited with status $error_code"
+    log_error "Error at line $line_number: Command '$command' exited with status $error_code"
+    
+    read -p "Press Enter to continue..."
+}
+
+# Set error trap
+trap 'handle_error $LINENO $? "$BASH_COMMAND"' ERR
+
+# Handle script interruption
+handle_interrupt() {
+    echo
+    print_warning "Script interrupted by user"
+    log_info "Script interrupted by user"
+    exit_application
+}
+
+# Set interrupt trap
+trap handle_interrupt SIGINT SIGTERM
+
+# =============================================================================
+# COMMAND LINE ARGUMENT PARSING
+# =============================================================================
+
+# Show help
+show_help() {
+    cat << EOF
+$SCRIPT_NAME v$SCRIPT_VERSION - System Administration Menu
+
+USAGE:
+    $SCRIPT_NAME [OPTIONS]
+
+OPTIONS:
+    -h, --help          Show this help message
+    -v, --version       Show version information
+    -c, --config FILE   Use custom configuration file
+    -l, --log FILE      Use custom log file
+    -q, --quiet         Disable logging
+    --debug             Enable debug mode
+
+EXAMPLES:
+    $SCRIPT_NAME                    # Run with default settings
+    $SCRIPT_NAME -c /path/to/config # Use custom config file
+    $SCRIPT_NAME --quiet            # Run without logging
+
+For more information, see the README.md file.
+EOF
+}
+
+# Parse command line arguments
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            -v|--version)
+                echo "$SCRIPT_NAME v$SCRIPT_VERSION"
+                exit 0
+                ;;
+            -c|--config)
+                if [[ -n "$2" ]]; then
+                    CONFIG_FILE="$2"
+                    shift 2
+                else
+                    print_error "Option --config requires an argument"
+                    exit 1
+                fi
+                ;;
+            -l|--log)
+                if [[ -n "$2" ]]; then
+                    LOG_FILE="$2"
+                    shift 2
+                else
+                    print_error "Option --log requires an argument"
+                    exit 1
+                fi
+                ;;
+            -q|--quiet)
+                ENABLE_LOGGING="false"
+                shift
+                ;;
+            --debug)
+                set -x
+                LOG_LEVEL="DEBUG"
+                shift
+                ;;
+            -*)
+                print_error "Unknown option: $1"
+                show_help
+                exit 1
+                ;;
+            *)
+                print_error "Unexpected argument: $1"
+                show_help
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# =============================================================================
+# MAIN FUNCTION
+# =============================================================================
+
+main() {
+    # Parse command line arguments
+    parse_arguments "$@"
+    
+    # Initialize application
+    init_application
+    
+    # Main menu loop
+    while true; do
+        show_main_menu
+        read -p "Select an option: " choice
+        handle_menu_selection "$choice"
+    done
+}
+
+# Run main function if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

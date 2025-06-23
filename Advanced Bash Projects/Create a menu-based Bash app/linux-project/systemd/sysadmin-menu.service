@@ -1,0 +1,42 @@
+# =============================================================================
+# System Admin Menu - Systemd Service Unit File
+# =============================================================================
+# This service file allows you to run the System Admin Menu as a systemd
+# service. This is useful for automated monitoring or scheduled tasks.
+# =============================================================================
+
+[Unit]
+Description=System Admin Menu Service
+Documentation=file:///usr/local/share/doc/sysadmin-menu/README.md
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/sysadmin-menu
+ExecStart=/opt/sysadmin-menu/bin/sysadmin-menu --quiet
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/sysadmin-menu/logs
+
+# Resource limits
+LimitNOFILE=1024
+LimitNPROC=512
+
+# Environment variables
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=TERM=xterm
+
+[Install]
+WantedBy=multi-user.target
