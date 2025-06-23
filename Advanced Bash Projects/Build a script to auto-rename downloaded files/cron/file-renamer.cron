@@ -1,0 +1,12 @@
+# File Auto-Renamer Cron Jobs
+# 
+# To install these jobs, run:
+# crontab -e
+# Then add the lines below (uncomment and modify paths as needed)
+
+# Process existing files every hour
+# 0 * * * * /usr/bin/python3 /opt/file-auto-renamer/src/file_renamer.py --existing >> /tmp/file-renamer-cron.log 2>&1
+
+# Alternative: Run the monitoring daemon every 5 minutes (if not using systemd)
+# This will start the daemon if it's not running, but may create multiple instances
+# */5 * * * * pgrep -f "file_renamer.py" > /dev/null || /usr/bin/python3 /opt/file-auto-renamer/src/file_renamer.py --daemon >> /tmp/file-renamer-daemon.log 2>&1

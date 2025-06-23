@@ -1,0 +1,28 @@
+[Unit]
+Description=File Auto-Renamer Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/opt/file-auto-renamer
+ExecStart=/usr/bin/python3 /opt/file-auto-renamer/src/file_renamer.py --daemon
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONPATH=/opt/file-auto-renamer
+Environment=HOME=/home/%i
+
+# Security settings
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=false
+ReadWritePaths=/home/%i/Downloads /opt/file-auto-renamer/logs
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
