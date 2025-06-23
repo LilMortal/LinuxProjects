@@ -1,0 +1,54 @@
+[Unit]
+Description=CLI Music Player Service
+Documentation=https://github.com/yourusername/cli-music-player
+After=network.target sound.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=musicplayer
+Group=audio
+WorkingDirectory=/home/musicplayer
+Environment=HOME=/home/musicplayer
+Environment=XDG_RUNTIME_DIR=/run/user/1001
+
+# Main command - adjust paths as needed
+ExecStart=/usr/local/bin/music-player --daemon --directory /home/musicplayer/Music --volume 50
+
+# Restart policy
+Restart=always
+RestartSec=10
+KillMode=mixed
+TimeoutStopSec=30
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/music-player /home/musicplayer
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=1024
+LimitNPROC=512
+MemoryMax=256M
+CPUQuota=25%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=music-player
+
+[Install]
+WantedBy=multi-user.target
+Alias=musicplayer.service

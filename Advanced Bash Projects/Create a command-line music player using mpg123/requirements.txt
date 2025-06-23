@@ -1,0 +1,18 @@
+# CLI Music Player Requirements
+# All dependencies are part of Python 3 standard library
+# No external packages required
+
+# System requirements (install via package manager):
+# - mpg123 (audio player engine)
+# - python3 (>= 3.8)
+# - python3-pip (for package management if needed)
+
+# Optional system packages for enhanced functionality:
+# - alsa-utils (for advanced audio control)
+# - pulseaudio-utils (for PulseAudio systems)
+
+# Development/testing requirements (optional):
+# pytest>=6.0.0
+# pytest-cov>=2.0.0
+# flake8>=3.8.0
+# black>=21.0.0
