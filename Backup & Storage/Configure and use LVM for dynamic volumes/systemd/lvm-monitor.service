@@ -1,0 +1,48 @@
+[Unit]
+Description=LVM Dynamic Volume Monitor
+Documentation=man:lvm-manager(8)
+After=multi-user.target lvm2-monitor.service
+Wants=lvm2-monitor.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+
+# Main service command
+ExecStart=/usr/local/bin/lvm-manager monitor --auto-extend
+
+# Service configuration
+Restart=always
+RestartSec=60
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Security settings
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/lvm-manager /var/backup/lvm /tmp
+PrivateDevices=no
+PrivateNetwork=yes
+RemoveIPC=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# Resource limits
+LimitNOFILE=1024
+LimitNPROC=32
+MemoryLimit=256M
+CPUQuota=50%
+
+# Environment
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+EnvironmentFile=-/etc/default/lvm-manager
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lvm-monitor
+
+[Install]
+WantedBy=multi-user.target
