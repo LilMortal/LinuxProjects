@@ -1,0 +1,13 @@
+# Example URL list for MT-Downloader
+# Lines starting with # are comments and will be ignored
+# Each line should contain one URL
+
+# Example files (these are actual downloadable files for testing)
+https://httpbin.org/base64/SFRUUEJJTiBpcyBhd2Vzb21l
+https://httpbin.org/json
+https://httpbin.org/xml
+
+# Add your URLs here:
+# https://example.com/file1.zip
+# https://example.com/file2.pdf
+# https://example.com/file3.tar.gz

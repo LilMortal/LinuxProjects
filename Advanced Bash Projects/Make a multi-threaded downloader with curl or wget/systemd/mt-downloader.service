@@ -1,0 +1,28 @@
+[Unit]
+Description=MT-Downloader Service
+Documentation=file:///opt/mt-downloader/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=mt-downloader
+Group=mt-downloader
+WorkingDirectory=/opt/mt-downloader
+ExecStart=/opt/mt-downloader/bin/mt-downloader -f /opt/mt-downloader/config/urls.txt -o /opt/mt-downloader/downloads
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mt-downloader
+
+# Security settings
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mt-downloader/downloads /opt/mt-downloader/logs
+NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
