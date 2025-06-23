@@ -1,0 +1,39 @@
+[Unit]
+Description=AutoBackup Pro - Automated Daily Backup Service
+Documentation=file:///usr/share/doc/autobackup/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+
+# Environment
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=SHELL=/bin/bash
+
+# Main backup command
+ExecStart=/usr/local/bin/autobackup --verbose
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/autobackup /var/log/autobackup /tmp
+
+# Resource limits
+TimeoutStartSec=3600
+TimeoutStopSec=60
+
+# Restart policy
+Restart=no
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=autobackup
+
+[Install]
+WantedBy=multi-user.target

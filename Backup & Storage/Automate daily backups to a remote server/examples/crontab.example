@@ -1,0 +1,20 @@
+# AutoBackup Pro Crontab Examples
+# ================================
+
+# Run backup daily at 2:00 AM
+0 2 * * * /usr/local/bin/autobackup >/dev/null 2>&1
+
+# Run backup daily at 3:30 AM with email notification on errors
+30 3 * * * /usr/local/bin/autobackup 2>&1 | grep -i error | mail -s "Backup Error Report" admin@example.com
+
+# Run backup twice daily (2 AM and 2 PM)
+0 2,14 * * * /usr/local/bin/autobackup >/dev/null 2>&1
+
+# Run backup weekly on Sundays at 1:00 AM with verbose logging
+0 1 * * 0 /usr/local/bin/autobackup --verbose >> /var/log/autobackup/weekly.log 2>&1
+
+# Run backup with custom configuration monthly
+0 2 1 * * /usr/local/bin/autobackup --config /etc/autobackup/monthly.conf >/dev/null 2>&1
+
+# Test backup configuration daily without actually running it
+0 1 * * * /usr/local/bin/autobackup --dry-run --verbose >> /var/log/autobackup/test.log 2>&1

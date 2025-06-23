@@ -1,0 +1,18 @@
+[Unit]
+Description=AutoBackup Pro Daily Timer
+Documentation=file:///usr/share/doc/autobackup/README.md
+Requires=autobackup.service
+
+[Timer]
+# Run daily at 2:00 AM
+OnCalendar=daily
+Persistent=true
+
+# Randomize start time by up to 30 minutes to avoid load spikes
+RandomizedDelaySec=30m
+
+# Keep the service running if backup takes longer than expected
+AccuracySec=1h
+
+[Install]
+WantedBy=timers.target
