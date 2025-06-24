@@ -1,0 +1,25 @@
+[Unit]
+Description=SimpleChar Kernel Module
+Documentation=file:///usr/share/doc/simplechar/README.md
+After=multi-user.target
+Before=graphical.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/simplechar-load
+ExecStop=/usr/local/bin/simplechar-unload
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Security settings
+User=root
+Group=root
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=simplechar
+
+[Install]
+WantedBy=multi-user.target
