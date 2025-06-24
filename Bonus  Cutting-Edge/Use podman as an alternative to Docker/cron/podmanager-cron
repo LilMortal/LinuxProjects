@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# PodManager Cron Jobs
+# Example cron job configurations for automated PodManager tasks
+
+# Add these entries to your crontab by running: crontab -e
+# Or place this file in /etc/cron.d/podmanager
+
+# ============================================================================
+# SYSTEM CRONTAB FORMAT (for /etc/cron.d/podmanager)
+# ============================================================================
+
+# Environment variables
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=admin@example.com
+
+# Daily container health check at 2:00 AM
+0 2 * * * podmanager /usr/local/bin/podmanager health-check --all >> /var/log/podmanager/cron.log 2>&1
+
+# Weekly image cleanup every Sunday at 3:00 AM
+0 3 * * 0 podmanager /usr/local/bin/podmanager image-prune --force >> /var/log/podmanager/cron.log 2>&1
+
+# Hourly resource monitoring (log only)
+0 * * * * podmanager /usr/local/bin/podmanager stats --log-only >> /var/log/podmanager/stats.log 2>&1
+
+# Daily security scan of running containers at 1:00 AM
+0 1 * * * podmanager /usr/local/bin/podmanager-security-scan >> /var/log/podmanager/security.log 2>&1
+
+# Weekly full system cleanup every Saturday at 4:00 AM
+0 4 * * 6 podmanager /usr/local/bin/podmanager cleanup >> /var/log/podmanager/cron.log 2>&1
+
+# ============================================================================
+# USER CRONTAB FORMAT (for regular users)
+# ============================================================================
+
+# To install these in user's crontab, run: crontab -e
+# Then add the following lines:
+
+# Daily health check
+# 0 2 * * * /usr/local/bin/podmanager health-check --all
+
+# Weekly cleanup
+# 0 3 * * 0 /usr/local/bin/podmanager image-prune
+
+# Hourly stats
+# 0 * * * * /usr/local/bin/podmanager stats --log-only
+
+# ============================================================================
+# CUSTOM SCRIPTS FOR ADVANCED AUTOMATION
+# ============================================================================
+
+# You can also create custom scripts that use podmanager commands
+# Example: /usr/local/bin/podmanager-security-scan
+
+create_security_scan_script() {
+    cat > /usr/local/bin/podmanager-security-scan << 'EOF'
+#!/bin/bash
+
+# PodManager Security Scan Script
+# Scans all running containers for security issues
+
+LOG_FILE="/var/log/podmanager/security.log"
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
+echo "[$TIMESTAMP] Starting security scan of all containers" >> "$LOG_FILE"
+
+# Get all running containers
+CONTAINERS=$(podman ps --format "{{.Names}}")
+
+if [[ -z "$CONTAINERS" ]]; then
+    echo "[$TIMESTAMP] No running containers found" >> "$LOG_FILE"
+    exit 0
+fi
+
+# Scan each container
+while IFS= read -r container; do
+    if [[ -n "$container" ]]; then
+        echo "[$TIMESTAMP] Scanning container: $container" >> "$LOG_FILE"
+        
+        # Get the image for this container
+        IMAGE=$(podman inspect --format '{{.Image}}' "$container\" 2>/dev/null)
+        
+        if [[ -n "$IMAGE" ]]; then
+            /usr/local/bin/podmanager scan-security "$IMAGE" >> "$LOG_FILE\" 2>&1
+        fi
+    fi
+done <<< "$CONTAINERS"
+
+echo "[$TIMESTAMP] Security scan completed" >> "$LOG_FILE"
+EOF
+
+    chmod +x /usr/local/bin/podmanager-security-scan
+}
+
+# Call the function to create the script
+create_security_scan_script

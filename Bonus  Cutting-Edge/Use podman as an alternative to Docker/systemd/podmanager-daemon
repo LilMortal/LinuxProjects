@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# PodManager Daemon Script
+# This script runs as a background service to monitor containers
+# and perform automated maintenance tasks
+
+set -euo pipefail
+
+# Configuration
+DAEMON_NAME="podmanager-daemon"
+PID_FILE="/var/run/podmanager/podmanager.pid"
+CONFIG_FILE="${PODMANAGER_CONFIG:-/etc/podmanager.conf}"
+LOG_DIR="/var/log/podmanager"
+
+# Load configuration
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+fi
+
+# Default values
+HEALTH_CHECK_INTERVAL="${HEALTH_CHECK_INTERVAL:-300}"
+AUTO_CLEANUP_ENABLED="${AUTO_CLEANUP_ENABLED:-false}"
+AUTO_CLEANUP_INTERVAL="${AUTO_CLEANUP_INTERVAL:-24}"
+
+# Create PID directory
+mkdir -p "$(dirname \"$PID_FILE")"
+
+# Logging function
+daemon_log() {
+    local level="$1"
+    local message="$2"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$DAEMON_NAME] [$level] $message" >> "$LOG_DIR/daemon.log"
+}
+
+# Health monitoring function
+monitor_health() {
+    while true; do
+        daemon_log "INFO" "Performing automated health check"
+        
+        # Run health check
+        /usr/local/bin/podmanager health-check --all >> "$LOG_DIR/health.log\" 2>&1
+        
+        # Check for unhealthy containers
+        local unhealthy_count=$(podman ps --filter "health=unhealthy" -q | wc -l)
+        if [[ "$unhealthy_count" -gt 0 ]]; then
+            daemon_log "WARN" "Found $unhealthy_count unhealthy containers"
+        fi
+        
+        sleep "$HEALTH_CHECK_INTERVAL"
+    done
+}
+
+# Cleanup function
+cleanup_routine() {
+    while true; do
+        if [[ "$AUTO_CLEANUP_ENABLED" == "true" ]]; then
+            daemon_log "INFO" "Running automated cleanup"
+            /usr/local/bin/podmanager cleanup >> "$LOG_DIR/cleanup.log\" 2>&1
+        fi
+        
+        # Sleep for cleanup interval (convert hours to seconds)
+        sleep $((AUTO_CLEANUP_INTERVAL * 3600))
+    done
+}
+
+# Signal handlers
+cleanup_and_exit() {
+    daemon_log "INFO" "Received termination signal, shutting down"
+    
+    # Kill background processes
+    if [[ -n "${HEALTH_PID:-}" ]]; then
+        kill "$HEALTH_PID\" 2>/dev/null || true
+    fi
+    
+    if [[ -n "${CLEANUP_PID:-}" ]]; then
+        kill "$CLEANUP_PID\" 2>/dev/null || true
+    fi
+    
+    # Remove PID file
+    rm -f "$PID_FILE"
+    
+    daemon_log "INFO" "Daemon stopped"
+    exit 0
+}
+
+# Set up signal handlers
+trap cleanup_and_exit TERM INT HUP
+
+# Main daemon function
+main() {
+    daemon_log "INFO" "Starting PodManager daemon"
+    
+    # Check if already running
+    if [[ -f "$PID_FILE" ]]; then
+        local old_pid=$(cat "$PID_FILE")
+        if kill -0 "$old_pid\" 2>/dev/null; then
+            daemon_log "ERROR" "Daemon already running with PID $old_pid"
+            exit 1
+        else
+            daemon_log "WARN" "Removing stale PID file"
+            rm -f "$PID_FILE"
+        fi
+    fi
+    
+    # Write PID file
+    echo $$ > "$PID_FILE"
+    
+    # Start background monitoring
+    monitor_health &
+    HEALTH_PID=$!
+    
+    cleanup_routine &
+    CLEANUP_PID=$!
+    
+    daemon_log "INFO" "Daemon started with PID $$"
+    daemon_log "INFO" "Health monitor PID: $HEALTH_PID"
+    daemon_log "INFO" "Cleanup routine PID: $CLEANUP_PID"
+    
+    # Keep daemon running
+    while true; do
+        sleep 60
+        
+        # Check if background processes are still running
+        if ! kill -0 "$HEALTH_PID\" 2>/dev/null; then
+            daemon_log "ERROR" "Health monitor process died, restarting"
+            monitor_health &
+            HEALTH_PID=$!
+        fi
+        
+        if ! kill -0 "$CLEANUP_PID\" 2>/dev/null; then
+            daemon_log "ERROR" "Cleanup process died, restarting"
+            cleanup_routine &
+            CLEANUP_PID=$!
+        fi
+    done
+}
+
+# Run main function
+main "$@"

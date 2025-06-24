@@ -1,0 +1,37 @@
+[Unit]
+Description=PodManager Container Management Service
+Documentation=https://github.com/username/podmanager
+After=network.target
+Wants=network.target
+
+[Service]
+Type=forking
+User=podmanager
+Group=podmanager
+ExecStart=/usr/local/bin/podmanager-daemon
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+PIDFile=/var/run/podmanager/podmanager.pid
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/podmanager /var/run/podmanager /tmp
+
+# Environment
+Environment=PODMANAGER_CONFIG=/etc/podmanager.conf
+Environment=PODMANAGER_LOG_LEVEL=INFO
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=podmanager
+
+[Install]
+WantedBy=multi-user.target
