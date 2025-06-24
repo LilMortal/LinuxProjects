@@ -1,0 +1,13 @@
+[Unit]
+Description=Run ImmutableOS Explorer Update Checker weekly
+Documentation=https://github.com/username/immutable-os-explorer
+Requires=immutable-os-explorer.service
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1week
+RandomizedDelaySec=3600
+Persistent=true
+
+[Install]
+WantedBy=timers.target

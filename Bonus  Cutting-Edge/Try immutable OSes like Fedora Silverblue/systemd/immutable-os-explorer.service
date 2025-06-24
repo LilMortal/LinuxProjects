@@ -1,0 +1,42 @@
+[Unit]
+Description=ImmutableOS Explorer Update Checker
+Documentation=https://github.com/username/immutable-os-explorer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=nobody
+Group=nobody
+ExecStart=/usr/local/bin/immutable-os-explorer update-check --notify
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHostname=true
+ProtectClock=true
+ProtectKernelLogs=true
+SystemCallArchitectures=native
+LockPersonality=true
+RestrictNamespaces=true
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+
+# Resource limits
+MemoryMax=128M
+TasksMax=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,35 @@
+{
+  "download_dir": "/home/$USER/Downloads/ImmutableOS",
+  "log_level": "INFO",
+  "auto_verify_checksums": true,
+  "max_concurrent_downloads": 3,
+  "update_check_interval": "weekly",
+  "preferred_mirror": "auto",
+  "usb_creation_tool": "dd",
+  "notification_enabled": true,
+  "color_output": true,
+  "interactive_prompts": true,
+  "backup_isos": false,
+  "cleanup_old_isos": true,
+  "cleanup_threshold_days": 30,
+  "custom_os_definitions": {},
+  "proxy_settings": {
+    "enabled": false,
+    "http_proxy": "",
+    "https_proxy": "",
+    "no_proxy": "localhost,127.0.0.1"
+  },
+  "download_options": {
+    "retry_attempts": 3,
+    "retry_delay": 5,
+    "timeout": 300,
+    "user_agent": "ImmutableOS-Explorer/1.0.0"
+  },
+  "logging": {
+    "max_log_size": "10M",
+    "max_log_files": 5,
+    "log_format": "timestamp",
+    "syslog_enabled": false,
+    "syslog_facility": "user"
+  }
+}

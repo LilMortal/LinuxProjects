@@ -1,0 +1,124 @@
+ImmutableOS Explorer - Project Structure
+=======================================
+
+immutable-os-explorer/
+├── README.md                              # Complete project documentation
+├── install.sh                             # System installation script
+├── uninstall.sh                           # System removal script
+├── PROJECT_STRUCTURE.txt                  # This file
+│
+├── src/
+│   └── immutable-os-explorer.sh           # Main application script (500+ lines)
+│
+├── config/
+│   └── config.json                        # Default configuration file
+│
+├── systemd/
+│   ├── immutable-os-explorer.service      # Systemd service unit
+│   └── immutable-os-explorer.timer        # Systemd timer unit
+│
+├── docs/
+│   ├── CONTRIBUTING.md                    # Contribution guidelines
+│   ├── CHANGELOG.md                       # Version history
+│   ├── SECURITY.md                        # Security policy
+│   └── guides/
+│       ├── fedora-silverblue.md          # Installation guide
+│       ├── opensuse-microos.md           # Installation guide  
+│       ├── nixos.md                      # Installation guide
+│       └── troubleshooting.md            # Common issues
+│
+├── tests/
+│   ├── unit_tests.sh                     # Unit tests for functions
+│   ├── integration_tests.sh              # Integration tests
+│   └── test_data/                        # Test fixtures
+│       └── sample_configs.json
+│
+├── examples/
+│   ├── custom_os_definitions.json        # Example custom OS definitions
+│   ├── advanced_config.json              # Advanced configuration example
+│   └── scripts/
+│       ├── bulk_download.sh              # Bulk ISO download script
+│       └── usb_batch_creator.sh          # Batch USB creation
+│
+└── LICENSE                               # MIT License file
+
+Installation Locations (after running install.sh):
+==================================================
+
+System Files:
+├── /usr/local/bin/immutable-os-explorer   # Main executable
+├── /etc/immutable-os-explorer/            # Configuration directory
+│   └── config.json                        # Main configuration
+├── /var/log/immutable-os-explorer/        # Log directory
+│   ├── main.log                           # Main application log
+│   ├── downloads.log                      # Download operations log
+│   └── errors.log                         # Error log
+├── /usr/share/immutable-os-explorer/      # Data directory
+│   └── guides/                            # Installation guides
+├── /etc/systemd/system/                   # Systemd integration
+│   ├── immutable-os-explorer.service     # Service unit
+│   └── immutable-os-explorer.timer       # Timer unit
+├── /etc/logrotate.d/immutable-os-explorer # Log rotation config
+├── /usr/local/share/man/man1/             # Manual page
+│   └── immutable-os-explorer.1           # Man page
+└── /etc/bash_completion.d/                # Shell completion
+    └── immutable-os-explorer              # Bash completion script
+
+User Files (runtime):
+├── ~/Downloads/ImmutableOS/               # Default download directory
+│   ├── *.iso                             # Downloaded ISO files
+│   └── *.checksum                        # Checksum files
+└── ~/.local/share/immutable-os-explorer/ # User-specific data (fallback)
+    └── logs/                             # User logs (if system logs unavailable)
+
+Key Features by File:
+===================
+
+src/immutable-os-explorer.sh:
+- Complete CLI interface with argument parsing
+- OS database with 5+ immutable operating systems
+- ISO download with progress tracking and verification
+- USB creation capabilities (dd method)
+- System compatibility checking
+- Interactive mode for guided usage
+- Comprehensive logging with multiple levels
+- Error handling and recovery
+- Comparison matrix for multiple OSes
+- Update checking functionality
+
+config/config.json:
+- Download directory configuration
+- Logging preferences
+- Proxy settings support
+- Download retry logic
+- Cleanup options
+- Security settings
+
+systemd/:
+- Automatic weekly update checking
+- Proper service hardening
+- Resource limits
+- Logging integration
+
+install.sh:
+- Dependency checking
+- Proper file permissions
+- User prompts for optional features
+- Installation verification
+- Man page generation
+- Bash completion setup
+
+Documentation:
+- Complete README with all 12 required sections
+- Installation and usage examples
+- Security guidelines
+- Troubleshooting information
+- API documentation for advanced users
+
+Security Features:
+- Checksum verification for all downloads
+- Systemd service hardening
+- Proper file permissions
+- Input validation and sanitization
+- Safe USB device handling
+- Proxy support for corporate environments
