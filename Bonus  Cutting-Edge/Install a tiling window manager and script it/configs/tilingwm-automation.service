@@ -1,0 +1,37 @@
+[Unit]
+Description=TilingWM Manager Automation Service
+Documentation=https://github.com/yourusername/tilingwm-manager
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+User=%i
+Environment=DISPLAY=:0
+Environment=HOME=%h
+ExecStart=/usr/local/bin/tilingwm-automation --daemon
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/share/tilingwm %h/.config/tilingwm
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=1024
+LimitNPROC=100
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tilingwm-automation
+
+[Install]
+WantedBy=default.target

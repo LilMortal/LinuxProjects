@@ -1,0 +1,19 @@
+# TilingWM Manager - Wallpaper Configuration
+#
+# This file would normally contain a wallpaper image.
+# Since we cannot include binary files, please:
+#
+# 1. Download or create a wallpaper image
+# 2. Save it as: ~/.config/tilingwm/wallpaper.jpg
+# 3. The i3 configuration will automatically use it
+#
+# Recommended sources for wallpapers:
+# - https://unsplash.com/
+# - https://www.pexels.com/
+# - https://wallhaven.cc/
+#
+# Recommended resolution: 1920x1080 or your monitor's native resolution
+# Supported formats: JPG, PNG, BMP, GIF
+#
+# Example using wget to download a wallpaper:
+# wget -O ~/.config/tilingwm/wallpaper.jpg "https://images.pexels.com/photos/1367192/pexels-photo-1367192.jpeg"

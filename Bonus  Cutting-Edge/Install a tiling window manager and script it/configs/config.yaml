@@ -1,0 +1,171 @@
+# TilingWM Manager Configuration
+# 
+# Main configuration file for TilingWM Manager system
+# This file controls automation behavior and system settings
+
+# General Settings
+general:
+  log_level: "INFO"          # DEBUG, INFO, WARN, ERROR
+  check_interval: 30         # Seconds between automation checks
+  enable_automation: true    # Enable/disable automation features
+  backup_retention: 30       # Days to keep backups
+
+# Workspace Configuration
+workspaces:
+  default_workspace: 1
+  max_workspaces: 10
+  auto_create: true          # Automatically create workspaces as needed
+  auto_cleanup: true         # Remove empty workspaces
+  
+  # Named workspaces
+  names:
+    1: "Terminal"
+    2: "Web"
+    3: "Development" 
+    4: "Communication"
+    5: "Files"
+    6: "Media"
+    7: "Graphics"
+    8: "Music"
+    9: "System"
+    10: "Background"
+
+# Time-based Rules
+time_rules:
+  enabled: true
+  
+  # Time slot definitions (24-hour format)
+  slots:
+    morning:
+      start: "06:00"
+      end: "12:00"
+      workspace: 1
+      
+    afternoon:
+      start: "12:00"
+      end: "18:00"
+      workspace: 2
+      
+    evening:
+      start: "18:00"
+      end: "22:00"
+      workspace: 3
+      
+    night:
+      start: "22:00"
+      end: "06:00"
+      workspace: 10
+
+# Idle Management
+idle:
+  enabled: true
+  timeout: 300               # Seconds before considering system idle
+  workspace: 10              # Workspace to switch to when idle
+  ignore_workspaces: [9, 10] # Don't apply idle rules to these workspaces
+
+# Power Management
+power:
+  enabled: true
+  
+  battery:
+    low_threshold: 20        # Percentage
+    critical_threshold: 10   # Percentage
+    low_workspace: 9         # Workspace for low battery mode
+    
+  ac_power:
+    performance_workspace: 2 # Workspace when plugged in
+
+# Application Rules
+applications:
+  # Automatically assign applications to workspaces
+  assignments:
+    firefox: 2
+    code: 3
+    thunderbird: 4
+    nautilus: 5
+    vlc: 6
+    gimp: 7
+    spotify: 8
+    htop: 9
+    
+  # Floating window rules
+  floating:
+    - "Arandr"
+    - "Pavucontrol"
+    - "Blueman-manager"
+    - "Network Connections"
+    - "Calculator"
+
+# Window Management
+windows:
+  auto_focus: true           # Automatically focus new windows
+  smart_gaps: true           # Only show gaps when multiple windows
+  border_width: 2            # Window border width in pixels
+  
+  # Gap settings (requires i3-gaps)
+  gaps:
+    inner: 10
+    outer: 5
+
+# Status Bar
+statusbar:
+  enabled: true
+  position: "top"            # top, bottom
+  workspace_buttons: true
+  binding_mode_indicator: true
+  
+  # Modules to display
+  modules:
+    - "workspace"
+    - "mode"
+    - "window_title" 
+    - "disk_usage"
+    - "network"
+    - "battery"
+    - "load"
+    - "memory"
+    - "temperature"
+    - "datetime"
+
+# Keybindings
+keybindings:
+  mod_key: "Mod4"           # Mod1=Alt, Mod4=Super/Windows key
+  
+  # Custom bindings
+  custom:
+    "$mod+t": "exec terminology"
+    "$mod+b": "exec firefox"
+    "$mod+n": "exec nautilus"
+    "$mod+c": "exec code"
+
+# Logging
+logging:
+  file: "~/.local/share/tilingwm/logs/tilingwm.log"
+  max_size: "10MB"
+  rotate_count: 5
+  syslog: true
+
+# Backup Settings
+backup:
+  directory: "~/.local/share/tilingwm/backups"
+  auto_backup: true
+  backup_interval: "daily"   # daily, weekly, monthly
+  compression: true
+
+# Notification Settings
+notifications:
+  enabled: true
+  workspace_switch: false    # Notify on workspace switches
+  application_launch: false  # Notify on application launches
+  errors: true              # Notify on errors
+  
+# Security Settings
+security:
+  lock_timeout: 600         # Seconds before auto-lock (0 to disable)
+  lock_command: "i3lock"
+  
+# System Integration
+system:
+  startup_delay: 5          # Seconds to wait before starting automation
+  shutdown_cleanup: true    # Clean up on system shutdown
+  session_restore: true     # Restore workspace layout on login
